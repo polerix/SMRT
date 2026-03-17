@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Magnetic Hill Mystery</title>
+  <title>SecurityAdventure</title>
   <meta name="description"
-    content="A SCUMM-style point-and-click adventure game in the spirit of Zak McKraken and the Alien Mindbenders." />
+    content="SecurityAdventure — a SCUMM-style cybersecurity awareness game powered by the SMRT engine." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
@@ -15,8 +15,8 @@
 <body>
   <div id="game-wrapper">
     <div id="title-bar">
-      <span id="game-title">⊕ MAGNETIC HILL MYSTERY</span>
-      <span id="score-display">Score: <strong id="score">0</strong></span>
+      <span id="game-title">⊕ <span id="game-title-text">SECURITYADVENTURE</span></span>
+      <span id="score-display">Risk: <strong id="score">0</strong></span>
     </div>
 
     <!-- The canvas fills the panel area. 960×600 internal resolution. -->
@@ -33,15 +33,99 @@
   <script src="engine/Actor.js"></script>
   <script src="engine/Room.js"></script>
   <script src="engine/Engine.js"></script>
-  <script src="game/main.js"></script>
+
   <script>
-    // Hide loading overlay once modules are ready
-    window.addEventListener('load', () => {
+    /**
+     * SMRT Bootstrap — SecurityAdventure mode
+     *
+     * Fetches game/security_adventure.json, validates the world root fields,
+     * pre-loads background images, then hands everything to Engine.loadFromJSON().
+     *
+     * To run the legacy Dave/Moncton game instead, uncomment the legacy loader
+     * at the bottom and comment out the fetchAndLoad call.
+     */
+
+    window.engine = null;
+
+    async function fetchAndLoad(dataUrl) {
+      const overlay   = document.getElementById('loading-overlay');
+      const titleText = document.getElementById('game-title-text');
+
+      // ── 1. Fetch game data ──────────────────────────────────────────────────
+      let data;
+      try {
+        const resp = await fetch(dataUrl);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        data = await resp.json();
+      } catch (e) {
+        overlay.querySelector('#loading-text').textContent = `Failed to load ${dataUrl}: ${e.message}`;
+        console.error('[SMRT] Failed to load game data:', e);
+        return;
+      }
+
+      // Update title
+      if (data.world?.title) titleText.textContent = data.world.title.toUpperCase();
+
+      // ── 2. Pre-load sprite images ──────────────────────────────────────────
+      const spriteMap = {};
+
+      const loadImg = (key, src) => new Promise(resolve => {
+        const img = new Image();
+        img.onload  = () => { spriteMap[key] = img; resolve(); };
+        img.onerror = () => { console.warn(`[SMRT] Missing sprite: ${src}`); resolve(); };
+        img.src = src;
+      });
+
+      const imageLoads = [];
+
+      // Actor sprites
+      for (const [id, def] of Object.entries(data.actors ?? {})) {
+        if (def.sprite) imageLoads.push(loadImg(id, def.sprite));
+      }
+
+      // Scene backgrounds — keyed as "scene_<sceneId>"
+      for (const [sceneId, sceneDef] of Object.entries(data.scenes ?? {})) {
+        if (sceneDef.background) imageLoads.push(loadImg(`scene_${sceneId}`, sceneDef.background));
+      }
+
+      await Promise.all(imageLoads);
+
+      // ── 3. Boot engine ─────────────────────────────────────────────────────
+      const eng = new Engine('game');
+      window.engine = eng;
+
+      eng.loadFromJSON(data, spriteMap);
+      eng.start();
+
+      // ── 4. Wire risk display to score element ───────────────────────────────
+      const scoreEl = document.getElementById('score');
+      const origUpdate = eng._update.bind(eng);
+      eng._update = (dt) => {
+        origUpdate(dt);
+        if (scoreEl) scoreEl.textContent = eng.gameState.risk;
+      };
+
+      // ── 5. Hide loading overlay ────────────────────────────────────────────
       setTimeout(() => {
-        const overlay = document.getElementById('loading-overlay');
         if (overlay) overlay.style.display = 'none';
-      }, 800);
+      }, 400);
+
+      console.log('[SMRT] SecurityAdventure loaded.');
+    }
+
+    // ── Fire it up ─────────────────────────────────────────────────────────────
+    window.addEventListener('load', () => {
+      fetchAndLoad('game/security_adventure.json');
     });
+
+    // ── Legacy Dave/Moncton mode (uncomment + comment fetchAndLoad above) ──────
+    // window.addEventListener('load', () => {
+    //   import('./game/main.js').then(() => {
+    //     setTimeout(() => {
+    //       document.getElementById('loading-overlay').style.display = 'none';
+    //     }, 800);
+    //   });
+    // });
   </script>
 </body>
 

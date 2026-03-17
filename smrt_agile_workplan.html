@@ -1,0 +1,447 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .board { padding: 1rem 0; }
+  .sprint { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); margin-bottom: 1rem; overflow: hidden; }
+  .sprint-header { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; user-select: none; background: var(--color-background-secondary); }
+  .sprint-header:hover { background: var(--color-background-tertiary); }
+  .sprint-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+  .s0 .sprint-badge { background: #EEEDFE; color: #3C3489; }
+  .s1 .sprint-badge { background: #E1F5EE; color: #085041; }
+  .s2 .sprint-badge { background: #FAEEDA; color: #633806; }
+  .s3 .sprint-badge { background: #FAECE7; color: #712B13; }
+  .sprint-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); flex: 1; }
+  .sprint-meta { font-size: 12px; color: var(--color-text-secondary); }
+  .chevron { font-size: 11px; color: var(--color-text-tertiary); transition: transform 0.2s; }
+  .sprint.open .chevron { transform: rotate(90deg); }
+  .sprint-body { display: none; padding: 12px 16px 16px; border-top: 0.5px solid var(--color-border-tertiary); }
+  .sprint.open .sprint-body { display: block; }
+  .epic { margin-bottom: 14px; }
+  .epic-label { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .story-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .story { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 8px 10px; cursor: pointer; transition: background 0.15s; }
+  .story:hover { background: var(--color-background-secondary); }
+  .story.done { opacity: 0.5; }
+  .story-id { font-size: 10px; color: var(--color-text-tertiary); font-family: var(--font-mono); }
+  .story-text { font-size: 12px; color: var(--color-text-primary); margin-top: 2px; line-height: 1.4; }
+  .story-tag { font-size: 10px; padding: 2px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; }
+  .tag-schema { background: #EEEDFE; color: #534AB7; }
+  .tag-engine { background: #E1F5EE; color: #0F6E56; }
+  .tag-content { background: #FAEEDA; color: #854F0B; }
+  .tag-ai { background: #FAECE7; color: #993C1D; }
+  .tag-ui { background: #EAF3DE; color: #3B6D11; }
+  .mvp-gate { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 8px 12px; background: var(--color-background-secondary); margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+  .gate-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .gate-text { font-size: 12px; color: var(--color-text-secondary); line-height: 1.4; }
+  .arch-row { display: flex; gap: 8px; margin-top: 10px; }
+  .arch-box { flex: 1; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 8px; text-align: center; }
+  .arch-box .ab-label { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); }
+  .arch-box .ab-sub { font-size: 10px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .arch-arrow { display: flex; align-items: center; color: var(--color-text-tertiary); font-size: 14px; }
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 1rem; }
+  .tab { font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--color-border-tertiary); cursor: pointer; color: var(--color-text-secondary); background: transparent; }
+  .tab.active { background: var(--color-background-secondary); color: var(--color-text-primary); font-weight: 500; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .schema-block { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--color-text-primary); line-height: 1.6; overflow-x: auto; }
+  .sc { color: var(--color-text-tertiary); }
+  .sk { color: #534AB7; }
+  .sv { color: #0F6E56; }
+  .sn { color: #854F0B; }
+  .pipeline-step { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .pipeline-step:last-child { border-bottom: none; }
+  .ps-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+  .ps-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .ps-desc { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; line-height: 1.4; }
+  .char-card { border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px; margin-bottom: 8px; }
+  .char-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .char-role { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .char-attrs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+  .attr { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 6px 8px; }
+  .attr-label { font-size: 10px; color: var(--color-text-tertiary); }
+  .attr-val { font-size: 12px; color: var(--color-text-primary); margin-top: 1px; }
+</style>
+
+<div class="board">
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('sprints')">Sprint plan</button>
+    <button class="tab" onclick="switchTab('schema')">Content schema</button>
+    <button class="tab" onclick="switchTab('pipeline')">Pipeline</button>
+    <button class="tab" onclick="switchTab('chars')">Characters</button>
+  </div>
+
+  <!-- SPRINTS VIEW -->
+  <div id="view-sprints" class="view active">
+
+    <div class="sprint s0" id="sp0">
+      <div class="sprint-header" onclick="toggle('sp0')">
+        <span class="sprint-badge">Sprint 0 · Foundation</span>
+        <span class="sprint-title">Schema + repo wiring</span>
+        <span class="sprint-meta">~1 week</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="sprint-body">
+        <div class="epic">
+          <div class="epic-label">Epic A — Content schema</div>
+          <div class="story-grid">
+            <div class="story" onclick="sendPrompt('Draft the full SMRT game.schema.json for scenes, actors, transporters, hotspots, dialogue, and badges')">
+              <div class="story-id">S0-01</div>
+              <div class="story-text">Define <code>game.schema.json</code> covering worlds, scenes, actors, transporters, hotspots, dialogue trees, badge triggers</div>
+              <span class="story-tag tag-schema">schema</span>
+            </div>
+            <div class="story" onclick="sendPrompt('What does a minimal SecurityAdventure module node look like when converted to SMRT scene JSON?')">
+              <div class="story-id">S0-02</div>
+              <div class="story-text">Map existing SecurityAdventure module nodes → schema (2 modules = 2 scene clusters)</div>
+              <span class="story-tag tag-schema">schema</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Write a JSON validator script that checks a SMRT game data file against game.schema.json')">
+              <div class="story-id">S0-03</div>
+              <div class="story-text">Write a schema validator script (Node) to lint game data files on commit</div>
+              <span class="story-tag tag-schema">schema</span>
+            </div>
+            <div class="story" onclick="sendPrompt('How should SecurityAdventure and SMRT repos be linked — submodule, fetch at runtime, or build step?')">
+              <div class="story-id">S0-04</div>
+              <div class="story-text">Decide repo link strategy: git submodule vs runtime fetch vs CI copy</div>
+              <span class="story-tag tag-schema">schema</span>
+            </div>
+          </div>
+        </div>
+        <div class="mvp-gate">
+          <div class="gate-dot" style="background:#534AB7"></div>
+          <div class="gate-text"><strong>Gate:</strong> A hand-authored scene JSON passes the validator and loads in SMRT's existing engine without errors.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sprint s1" id="sp1">
+      <div class="sprint-header" onclick="toggle('sp1')">
+        <span class="sprint-badge">Sprint 1 · Engine</span>
+        <span class="sprint-title">SCUMM mechanics port</span>
+        <span class="sprint-meta">~2 weeks</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="sprint-body">
+        <div class="epic">
+          <div class="epic-label">Epic B — Scene system (from scumm-clone)</div>
+          <div class="story-grid">
+            <div class="story" onclick="sendPrompt('Port the scumm-clone transporter system into SMRT engine as a JSON-driven first-class primitive')">
+              <div class="story-id">S1-01</div>
+              <div class="story-text">Port transporter system: JSON-defined scene links, walk-to trigger, scene transition</div>
+              <span class="story-tag tag-engine">engine</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Implement JSON-driven scene loader in SMRT that reads a scene object and renders background, layers, and actor positions')">
+              <div class="story-id">S1-02</div>
+              <div class="story-text">JSON scene loader: background, layer ordering, actor spawn positions from data file</div>
+              <span class="story-tag tag-engine">engine</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Add a perspective/fake z-axis to SMRT so actors scale as they walk toward a horizon point defined in the scene JSON')">
+              <div class="story-id">S1-03</div>
+              <div class="story-text">Perspective/fake-z: actors scale toward scene horizon point (from scumm-clone)</div>
+              <span class="story-tag tag-engine">engine</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Implement clickable hotspot primitives in SMRT engine driven by scene JSON — examine, pick up, talk to')">
+              <div class="story-id">S1-04</div>
+              <div class="story-text">Hotspot primitives: examine / pick up / talk-to verbs, driven by scene JSON</div>
+              <span class="story-tag tag-engine">engine</span>
+            </div>
+          </div>
+        </div>
+        <div class="epic">
+          <div class="epic-label">Epic C — Dialogue system</div>
+          <div class="story-grid">
+            <div class="story" onclick="sendPrompt('Build a branching dialogue tree renderer in SMRT using the schema format — choices, outcomes, flag triggers')">
+              <div class="story-id">S1-05</div>
+              <div class="story-text">Branching dialogue renderer: choice nodes, outcome flags, NPC response chains</div>
+              <span class="story-tag tag-engine">engine</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Add game state flags to SMRT engine — boolean flags set by hotspot interactions and dialogue choices, read by scene loader')">
+              <div class="story-id">S1-06</div>
+              <div class="story-text">Game state flags: set by interactions, consumed by scene/dialogue conditionals</div>
+              <span class="story-tag tag-engine">engine</span>
+            </div>
+          </div>
+        </div>
+        <div class="mvp-gate">
+          <div class="gate-dot" style="background:#0F6E56"></div>
+          <div class="gate-text"><strong>Gate:</strong> Justin the Beaver can walk between two rooms, click a hotspot, and trigger a branching dialogue, all driven by JSON.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sprint s2" id="sp2">
+      <div class="sprint-header" onclick="toggle('sp2')">
+        <span class="sprint-badge">Sprint 2 · Content</span>
+        <span class="sprint-title">Two modules, building, Justin</span>
+        <span class="sprint-meta">~2 weeks</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="sprint-body">
+        <div class="epic">
+          <div class="epic-label">Epic D — SecurityAdventure pipeline</div>
+          <div class="story-grid">
+            <div class="story" onclick="sendPrompt('Author the SMRT scene JSON for SecurityAdventure module 1, converting curriculum content into hotspot interactions and dialogue')">
+              <div class="story-id">S2-01</div>
+              <div class="story-text">Author Module 1 scene cluster: rooms, hotspots, NPC dialogue mapped from curriculum</div>
+              <span class="story-tag tag-content">content</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Author the SMRT scene JSON for SecurityAdventure module 2, converting curriculum content into hotspot interactions and dialogue')">
+              <div class="story-id">S2-02</div>
+              <div class="story-text">Author Module 2 scene cluster: rooms, hotspots, NPC dialogue mapped from curriculum</div>
+              <span class="story-tag tag-content">content</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Design the building layout for Justin the Beaver — what rooms exist, how they connect, which module lives in each area')">
+              <div class="story-id">S2-03</div>
+              <div class="story-text">Building world layout: lobby, corridors, rooms — scene map connecting both modules</div>
+              <span class="story-tag tag-content">content</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Define a CI/CD workflow that pulls SecurityAdventure game data into SMRT and validates it on every push')">
+              <div class="story-id">S2-04</div>
+              <div class="story-text">Automate content sync: GitHub Action pulling SecurityAdventure JSON → SMRT on push</div>
+              <span class="story-tag tag-content">content</span>
+            </div>
+          </div>
+        </div>
+        <div class="epic">
+          <div class="epic-label">Epic E — Justin the Beaver actor</div>
+          <div class="story-grid">
+            <div class="story" onclick="sendPrompt('Define the Justin the Beaver player actor spec for SMRT: sprite sheet requirements, walk cycle, idle, talk animations')">
+              <div class="story-id">S2-05</div>
+              <div class="story-text">Justin actor spec: sprite sheet, walk/idle/talk states, click-to-walk movement</div>
+              <span class="story-tag tag-content">content</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Generate placeholder pixel art sprites for Justin the Beaver — beaver character in office setting, walk cycle frames')">
+              <div class="story-id">S2-06</div>
+              <div class="story-text">Generate Justin placeholder assets (AI-generated pixel art, swappable)</div>
+              <span class="story-tag tag-content">content</span>
+            </div>
+          </div>
+        </div>
+        <div class="mvp-gate">
+          <div class="gate-dot" style="background:#854F0B"></div>
+          <div class="gate-text"><strong>Gate:</strong> Both module narrative arcs are completable from start to finish — Justin traverses the building, engages all learning hotspots in each module.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sprint s3" id="sp3">
+      <div class="sprint-header" onclick="toggle('sp3')">
+        <span class="sprint-badge">Sprint 3 · MVP complete</span>
+        <span class="sprint-title">Smarty + badges + polish</span>
+        <span class="sprint-meta">~1.5 weeks</span>
+        <span class="chevron">▶</span>
+      </div>
+      <div class="sprint-body">
+        <div class="epic">
+          <div class="epic-label">Epic F — Smarty the Fox (AI nudge)</div>
+          <div class="story-grid">
+            <div class="story" onclick="sendPrompt('Design the Smarty the Fox chatbot integration — how does she appear, when does she nudge Justin, what Claude API prompt should she use?')">
+              <div class="story-id">S3-01</div>
+              <div class="story-text">Smarty appearance logic: trigger conditions (idle, stuck, module entry), overlay UI</div>
+              <span class="story-tag tag-ai">ai</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Write the system prompt for Smarty the Fox — a gentle fox guide who nudges without spoiling, grounded in the current scene context')">
+              <div class="story-id">S3-02</div>
+              <div class="story-text">Smarty system prompt: scene-aware, Socratic nudges, never spoils — uses Claude API</div>
+              <span class="story-tag tag-ai">ai</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Build the Smarty the Fox chat overlay UI in SMRT — fox avatar, speech bubble, input field, Claude API call with scene context injected')">
+              <div class="story-id">S3-03</div>
+              <div class="story-text">Smarty chat overlay: fox avatar, bubble UI, context-injected Claude API call</div>
+              <span class="story-tag tag-ai">ai</span>
+            </div>
+          </div>
+        </div>
+        <div class="epic">
+          <div class="epic-label">Epic G — Badge system</div>
+          <div class="story-grid">
+            <div class="story" onclick="sendPrompt('Design the badge schema for SMRT — what triggers badge award, how are badges stored, how are they displayed to Justin')">
+              <div class="story-id">S3-04</div>
+              <div class="story-text">Badge schema: trigger conditions (flags), award animation, localStorage persistence</div>
+              <span class="story-tag tag-ui">ui</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Define the badges for the two SecurityAdventure modules — names, descriptions, what learning behaviour earns each one')">
+              <div class="story-id">S3-05</div>
+              <div class="story-text">Module badge definitions: one completion badge + micro-badges per discovery per module</div>
+              <span class="story-tag tag-ui">ui</span>
+            </div>
+            <div class="story" onclick="sendPrompt('Build the badge display UI for SMRT — badge shelf or drawer Justin can open to see earned badges, with descriptions')">
+              <div class="story-id">S3-06</div>
+              <div class="story-text">Badge shelf UI: earned/locked states, award celebration moment, accessible drawer</div>
+              <span class="story-tag tag-ui">ui</span>
+            </div>
+          </div>
+        </div>
+        <div class="mvp-gate">
+          <div class="gate-dot" style="background:#993C1D"></div>
+          <div class="gate-text"><strong>MVP Gate:</strong> A learner can complete both modules, earn all badges, be nudged by Smarty when stuck, and replay from the beginning — fully in-browser, no server required.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCHEMA VIEW -->
+  <div id="view-schema" class="view">
+    <div class="schema-block">
+<span class="sc">// game.schema.json — SMRT content contract</span>
+{
+  <span class="sk">"world"</span>: {
+    <span class="sk">"id"</span>: <span class="sv">"security_adventure"</span>,
+    <span class="sk">"startScene"</span>: <span class="sv">"lobby"</span>,
+    <span class="sk">"player"</span>: <span class="sv">"justin_beaver"</span>
+  },
+  <span class="sk">"scenes"</span>: {
+    <span class="sk">"lobby"</span>: {
+      <span class="sk">"background"</span>: <span class="sv">"assets/lobby.png"</span>,
+      <span class="sk">"horizon"</span>: { <span class="sk">"x"</span>: <span class="sn">310</span>, <span class="sk">"y"</span>: <span class="sn">180</span> },
+      <span class="sk">"transporters"</span>: [
+        { <span class="sk">"id"</span>: <span class="sv">"to_module1"</span>, <span class="sk">"target"</span>: <span class="sv">"server_room"</span>,
+          <span class="sk">"label"</span>: <span class="sv">"Go to server room"</span>, <span class="sk">"x"</span>: <span class="sn">580</span>, <span class="sk">"y"</span>: <span class="sn">300</span> }
+      ],
+      <span class="sk">"hotspots"</span>: [
+        { <span class="sk">"id"</span>: <span class="sv">"notice_board"</span>, <span class="sk">"label"</span>: <span class="sv">"Read notice board"</span>,
+          <span class="sk">"script"</span>: <span class="sv">"notice_read"</span>, <span class="sk">"x"</span>: <span class="sn">120</span>, <span class="sk">"y"</span>: <span class="sn">200</span>, <span class="sk">"w"</span>: <span class="sn">60</span>, <span class="sk">"h"</span>: <span class="sn">80</span> }
+      ],
+      <span class="sk">"actors"</span>: [<span class="sv">"smarty_fox"</span>]
+    }
+  },
+  <span class="sk">"actors"</span>: {
+    <span class="sk">"justin_beaver"</span>: {
+      <span class="sk">"sprite"</span>: <span class="sv">"assets/justin.png"</span>,
+      <span class="sk">"frames"</span>: { <span class="sk">"idle"</span>: <span class="sn">1</span>, <span class="sk">"walk"</span>: <span class="sn">4</span>, <span class="sk">"talk"</span>: <span class="sn">2</span> },
+      <span class="sk">"speed"</span>: <span class="sn">120</span>
+    },
+    <span class="sk">"smarty_fox"</span>: {
+      <span class="sk">"type"</span>: <span class="sv">"ai_guide"</span>,
+      <span class="sk">"sprite"</span>: <span class="sv">"assets/smarty.png"</span>,
+      <span class="sk">"triggerIdle"</span>: <span class="sn">20</span>,
+      <span class="sk">"model"</span>: <span class="sv">"claude-sonnet-4-20250514"</span>
+    }
+  },
+  <span class="sk">"dialogue"</span>: {
+    <span class="sk">"notice_read"</span>: {
+      <span class="sk">"lines"</span>: [{ <span class="sk">"speaker"</span>: <span class="sv">"justin"</span>, <span class="sk">"text"</span>: <span class="sv">"Phishing warning..."</span> }],
+      <span class="sk">"choices"</span>: [
+        { <span class="sk">"text"</span>: <span class="sv">"Report it"</span>, <span class="sk">"setFlag"</span>: <span class="sv">"noticed_phishing"</span>,
+          <span class="sk">"badge"</span>: <span class="sv">"sharp_eyes"</span> },
+        { <span class="sk">"text"</span>: <span class="sv">"Ignore it"</span>, <span class="sk">"goto"</span>: <span class="sv">"notice_ignore"</span> }
+      ]
+    }
+  },
+  <span class="sk">"badges"</span>: {
+    <span class="sk">"sharp_eyes"</span>: {
+      <span class="sk">"name"</span>: <span class="sv">"Sharp Eyes"</span>,
+      <span class="sk">"desc"</span>: <span class="sv">"Spotted a phishing attempt"</span>,
+      <span class="sk">"icon"</span>: <span class="sv">"assets/badge_eyes.png"</span>
+    }
+  }
+}
+    </div>
+  </div>
+
+  <!-- PIPELINE VIEW -->
+  <div id="view-pipeline" class="view">
+    <div class="arch-row" style="margin-bottom:14px">
+      <div class="arch-box" style="border-color:#AFA9EC">
+        <div class="ab-label" style="color:#534AB7">SecurityAdventure</div>
+        <div class="ab-sub">Narrative content source</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box" style="border-color:#5DCAA5">
+        <div class="ab-label" style="color:#0F6E56">SMRT/game/</div>
+        <div class="ab-sub">Validated JSON game data</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-box" style="border-color:#FAC775">
+        <div class="ab-label" style="color:#854F0B">SMRT/engine/</div>
+        <div class="ab-sub">Renderer + logic</div>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="ps-num" style="background:#EEEDFE;color:#534AB7">1</div>
+      <div>
+        <div class="ps-title">Author in SecurityAdventure</div>
+        <div class="ps-desc">Narrative designers write rooms, hotspots, dialogue trees, and badge triggers in SMRT-schema JSON. SecurityAdventure is the single source of truth for all game content.</div>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="ps-num" style="background:#E1F5EE;color:#0F6E56">2</div>
+      <div>
+        <div class="ps-title">Validate on push (GitHub Action)</div>
+        <div class="ps-desc">A CI job runs the schema validator on every commit to SecurityAdventure. Broken JSON or missing required fields fail the build before they reach the engine.</div>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="ps-num" style="background:#FAEEDA;color:#854F0B">3</div>
+      <div>
+        <div class="ps-title">Sync to SMRT/game/</div>
+        <div class="ps-desc">On successful validation, a workflow copies (or submodule-updates) the game data into SMRT's game/ folder. Engine code never lives in SecurityAdventure; content never lives in SMRT engine.</div>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="ps-num" style="background:#FAECE7;color:#993C1D">4</div>
+      <div>
+        <div class="ps-title">Engine loads at runtime</div>
+        <div class="ps-desc">SMRT engine fetches game.json at startup, initialises the world, and hands control to the player. Smarty the Fox gets the current scene context injected into every Claude API call.</div>
+      </div>
+    </div>
+    <div class="pipeline-step">
+      <div class="ps-num" style="background:#EAF3DE;color:#3B6D11">5</div>
+      <div>
+        <div class="ps-title">Badge state persists locally</div>
+        <div class="ps-desc">Earned badges and game flags are stored in localStorage. No backend required for MVP. Leaderboard / LMS export is a post-MVP concern.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARACTERS VIEW -->
+  <div id="view-chars" class="view">
+    <div class="char-card">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:50%;background:#FAEEDA;display:flex;align-items:center;justify-content:center;font-size:20px">🦫</div>
+        <div>
+          <div class="char-name">Justin the Beaver</div>
+          <div class="char-role">Principal actor · Player character</div>
+        </div>
+      </div>
+      <div class="char-attrs">
+        <div class="attr"><div class="attr-label">Type</div><div class="attr-val">Player actor</div></div>
+        <div class="attr"><div class="attr-label">Control</div><div class="attr-val">Click-to-walk</div></div>
+        <div class="attr"><div class="attr-label">States</div><div class="attr-val">Idle, walk, talk</div></div>
+        <div class="attr"><div class="attr-label">Art style</div><div class="attr-val">Pixel art, AI-gen</div></div>
+        <div class="attr" style="grid-column:1/-1"><div class="attr-label">Role in narrative</div><div class="attr-val">New employee navigating the building, discovering security knowledge through exploration. Earns badges as he resolves module challenges.</div></div>
+      </div>
+    </div>
+    <div class="char-card">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:50%;background:#EEEDFE;display:flex;align-items:center;justify-content:center;font-size:20px">🦊</div>
+        <div>
+          <div class="char-name">Smarty the Fox</div>
+          <div class="char-role">AI guide · Claude-powered chatbot NPC</div>
+        </div>
+      </div>
+      <div class="char-attrs">
+        <div class="attr"><div class="attr-label">Type</div><div class="attr-val">AI NPC (Claude API)</div></div>
+        <div class="attr"><div class="attr-label">Trigger</div><div class="attr-val">Idle 20s / stuck / entry</div></div>
+        <div class="attr"><div class="attr-label">Persona</div><div class="attr-val">Gentle, Socratic, never spoils</div></div>
+        <div class="attr"><div class="attr-label">Context</div><div class="attr-val">Scene + flags injected</div></div>
+        <div class="attr" style="grid-column:1/-1"><div class="attr-label">Behaviour</div><div class="attr-val">Nudges Justin toward unexplored hotspots with questions, not answers. Knows the current scene, Justin's badge status, and which flags are set. Never reveals solutions directly.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggle(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('view-' + name).classList.add('active');
+}
+document.getElementById('sp0').classList.add('open');
+</script>

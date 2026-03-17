@@ -1,0 +1,49 @@
+name: Validate SMRT Content
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'game/**'
+      - 'game/game.schema.json'
+      - 'validate.js'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'game/**'
+      - 'game/game.schema.json'
+      - 'validate.js'
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  validate-content:
+    name: Schema validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout SMRT
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate security_adventure.json
+        run: node validate.js game/security_adventure.json
+
+      # Validate any other *.json files in game/ (except the schema itself)
+      - name: Validate all game data files
+        run: |
+          failed=0
+          for f in game/*.json; do
+            [ "$f" = "game/game.schema.json" ] && continue
+            echo "→ Validating $f …"
+            node validate.js "$f" || failed=1
+          done
+          exit $failed

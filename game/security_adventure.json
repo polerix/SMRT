@@ -1,0 +1,402 @@
+{
+  "world": {
+    "id": "security_adventure",
+    "title": "SecurityAdventure",
+    "language": "en",
+    "startScene": "lobby",
+    "player": "justin",
+    "riskStart": 0
+  },
+
+  "scenes": {
+
+    "lobby": {
+      "background": "assets/sa/lobby.png",
+      "music": "track_lobby",
+      "horizon": { "x": 480, "y": 200 },
+      "walkbox": [
+        { "x": 80,  "y": 510 },
+        { "x": 880, "y": 510 },
+        { "x": 760, "y": 320 },
+        { "x": 200, "y": 320 }
+      ],
+      "actors": ["smarty", "wanda"],
+      "transporters": [
+        {
+          "id": "to_server_room",
+          "label": "Walk to Server Room",
+          "target": "server_room",
+          "entryX": 120,
+          "entryY": 450,
+          "x": 820, "y": 200,
+          "w": 120, "h": 310,
+          "walkToX": 860, "walkToY": 450
+        }
+      ],
+      "hotspots": [
+        {
+          "id": "notice_board",
+          "name": "Notice Board",
+          "x": 80, "y": 160,
+          "w": 200, "h": 220,
+          "walkToX": 175, "walkToY": 440,
+          "examine": "A notice board covered in printouts. One catches your eye — a password reminder from 'IT Support'.",
+          "script": "phishing_email"
+        },
+        {
+          "id": "reception_desk",
+          "name": "Reception Desk",
+          "x": 310, "y": 340,
+          "w": 340, "h": 120,
+          "walkToX": 480, "walkToY": 460,
+          "examine": "The reception desk. A sign reads: 'All visitors must sign in. Tailgating is a security violation.'"
+        },
+        {
+          "id": "security_poster",
+          "name": "Security Poster",
+          "x": 590, "y": 140,
+          "w": 160, "h": 200,
+          "walkToX": 670, "walkToY": 390,
+          "examine": "A Government of Canada security awareness poster. It says: 'Think Before You Click. Report Suspicious Emails.'"
+        },
+        {
+          "id": "wanda_briefcase",
+          "name": "Suspicious Briefcase",
+          "x": 700, "y": 400,
+          "w": 90, "h": 80,
+          "walkToX": 720, "walkToY": 470,
+          "examine": "A briefcase with a USB drive sticking out of the pocket. It looks like it was left here deliberately.",
+          "script": "briefcase_examine",
+          "visibleFlag": { "flag": "wanda_left_briefcase", "value": true }
+        }
+      ]
+    },
+
+    "server_room": {
+      "background": "assets/sa/server_room.png",
+      "horizon": { "x": 480, "y": 180 },
+      "walkbox": [
+        { "x": 60,  "y": 510 },
+        { "x": 900, "y": 510 },
+        { "x": 800, "y": 310 },
+        { "x": 160, "y": 310 }
+      ],
+      "actors": [],
+      "transporters": [
+        {
+          "id": "to_lobby",
+          "label": "Walk to Lobby",
+          "target": "lobby",
+          "entryX": 840,
+          "entryY": 440,
+          "x": 0, "y": 280,
+          "w": 80, "h": 240,
+          "walkToX": 60, "walkToY": 450
+        }
+      ],
+      "hotspots": [
+        {
+          "id": "usb_drive",
+          "name": "Unknown USB Drive",
+          "x": 380, "y": 350,
+          "w": 80, "h": 60,
+          "walkToX": 420, "walkToY": 460,
+          "examine": "A USB drive sitting on top of a server. Someone may have left it here, or planted it.",
+          "script": "usb_drop"
+        },
+        {
+          "id": "server_rack",
+          "name": "Server Rack",
+          "x": 160, "y": 130,
+          "w": 260, "h": 330,
+          "walkToX": 265, "walkToY": 440,
+          "examine": "A rack of servers humming quietly. The blinking lights make it look alive. No external devices should be connected to these."
+        },
+        {
+          "id": "access_log_terminal",
+          "name": "Access Log Terminal",
+          "x": 680, "y": 260,
+          "w": 190, "h": 200,
+          "walkToX": 760, "walkToY": 450,
+          "examine": "A terminal showing the access log. You notice Wanda's badge was scanned in twice this morning — but she didn't sign the visitor log.",
+          "script": "access_log_review"
+        }
+      ]
+    }
+
+  },
+
+  "actors": {
+
+    "justin": {
+      "type": "player",
+      "sprite": "assets/sa/justin.png",
+      "color": "#FFD700",
+      "frames": { "idle": 1, "walk": 4, "talk": 2 },
+      "speed": 120
+    },
+
+    "smarty": {
+      "type": "ai_guide",
+      "sprite": "assets/sa/smarty.png",
+      "color": "#FF8C00",
+      "frames": { "idle": 2, "talk": 3 },
+      "triggerIdleSeconds": 20,
+      "model": "claude-opus-4-5"
+    },
+
+    "wanda": {
+      "type": "antagonist",
+      "sprite": "assets/sa/wanda.png",
+      "color": "#AA2222",
+      "frames": { "idle": 2, "walk": 4, "talk": 3 },
+      "speed": 110
+    }
+
+  },
+
+  "dialogue": {
+
+    "phishing_email": {
+      "lines": [
+        {
+          "speaker": "justin",
+          "text": "There's a notice pinned up here: 'Urgent — Please reset your password by clicking the link below. — IT Support.' Something feels off."
+        },
+        {
+          "speaker": "smarty",
+          "text": "Psst — Justin. Before you do anything, what do you usually check in an email like that?"
+        }
+      ],
+      "choices": [
+        {
+          "label": "Click the link immediately",
+          "risk": "+=25",
+          "lines": [
+            {
+              "speaker": "narrator",
+              "text": "You click the link. A fake login page appears. Your credentials are now compromised. Wanda smiles from across the lobby."
+            },
+            {
+              "speaker": "smarty",
+              "text": "Hmm. What could you have checked before clicking that link?"
+            }
+          ],
+          "to": "phishing_followup_bad"
+        },
+        {
+          "label": "Check the sender's email address first",
+          "risk": "-=5",
+          "setFlag": "checked_sender",
+          "lines": [
+            {
+              "speaker": "justin",
+              "text": "I look at the sender: 'it-support@gov-ca-helpdesk.net'. That's not a government domain. That's a red flag."
+            }
+          ],
+          "to": "phishing_followup_good"
+        },
+        {
+          "label": "Report it to IT Security without clicking",
+          "risk": "-=10",
+          "setFlag": "reported_phishing",
+          "badge": "reporter",
+          "lines": [
+            {
+              "speaker": "justin",
+              "text": "I forward the notice details to itsecurity@canada.ca and mark it as suspected phishing."
+            },
+            {
+              "speaker": "smarty",
+              "text": "That's exactly right. Reporting suspicious communications protects everyone on the network. Well done!"
+            }
+          ]
+        }
+      ]
+    },
+
+    "phishing_followup_good": {
+      "lines": [
+        {
+          "speaker": "smarty",
+          "text": "Good catch. Now that you know it's suspicious — what's the right next step?"
+        }
+      ],
+      "choices": [
+        {
+          "label": "Delete it and say nothing",
+          "risk": "+=5",
+          "lines": [{ "speaker": "narrator", "text": "Others might still fall for it. Deleting without reporting leaves the threat active." }]
+        },
+        {
+          "label": "Report it to IT Security",
+          "risk": "-=10",
+          "setFlag": "reported_phishing",
+          "badge": "reporter",
+          "lines": [
+            { "speaker": "justin", "text": "I report the suspicious notice to IT Security immediately." },
+            { "speaker": "smarty", "text": "Perfect. You stopped potential harm to the whole network." }
+          ]
+        }
+      ]
+    },
+
+    "phishing_followup_bad": {
+      "lines": [
+        {
+          "speaker": "smarty",
+          "text": "What can you do right now to limit the damage from clicking that link?"
+        }
+      ],
+      "choices": [
+        {
+          "label": "Report it to IT Security and change my password",
+          "risk": "-=10",
+          "setFlag": "reported_phishing",
+          "badge": "quick_recovery",
+          "lines": [
+            { "speaker": "justin", "text": "I call IT Security right away and change my password from a secure device." },
+            { "speaker": "smarty", "text": "Fast action after an incident matters. You may have limited the exposure." }
+          ]
+        },
+        {
+          "label": "Hope no one notices",
+          "risk": "+=15",
+          "lines": [{ "speaker": "narrator", "text": "The incident goes unreported. The attacker maintains access for days." }]
+        }
+      ]
+    },
+
+    "usb_drop": {
+      "lines": [
+        {
+          "speaker": "justin",
+          "text": "An unknown USB drive just sitting here on the server. It could be anything."
+        },
+        {
+          "speaker": "narrator",
+          "text": "USB drives found in unexpected places are a classic social engineering attack. They may contain malware that auto-runs when inserted."
+        }
+      ],
+      "choices": [
+        {
+          "label": "Plug it in to see what's on it",
+          "risk": "+=30",
+          "lines": [
+            { "speaker": "narrator", "text": "The moment it's connected, a script runs. The server room lights flicker. Something is spreading across the network." },
+            { "speaker": "smarty", "text": "What should you have done instead of plugging it in?" }
+          ]
+        },
+        {
+          "label": "Leave it alone and report it to Security",
+          "risk": "-=10",
+          "setFlag": "reported_usb",
+          "badge": "usb_aware",
+          "lines": [
+            { "speaker": "justin", "text": "I don't touch it. I photograph it with my phone and call IT Security to report a suspicious device." },
+            { "speaker": "smarty", "text": "Exactly right. Never plug in unknown devices. Report and let trained staff handle it." }
+          ]
+        },
+        {
+          "label": "Pocket it to examine later on a personal device",
+          "risk": "+=20",
+          "lines": [
+            { "speaker": "narrator", "text": "Your personal device is compromised within seconds of plugging it in." },
+            { "speaker": "smarty", "text": "Unknown devices are dangerous on any machine — personal or government. What's the safe move?" }
+          ]
+        }
+      ]
+    },
+
+    "access_log_review": {
+      "lines": [
+        {
+          "speaker": "justin",
+          "text": "The access log shows Wanda's badge scanned twice today — but I saw her in the lobby, not in here. And she didn't sign the physical log."
+        }
+      ],
+      "choices": [
+        {
+          "label": "Ignore it — probably a system glitch",
+          "risk": "+=10",
+          "lines": [{ "speaker": "narrator", "text": "Possible tailgating incidents left uninvestigated are a real insider threat risk." }]
+        },
+        {
+          "label": "Report the anomaly to the Security Officer",
+          "risk": "-=5",
+          "setFlag": "reported_tailgating",
+          "badge": "vigilant",
+          "lines": [
+            { "speaker": "justin", "text": "I flag the access log anomaly to the building Security Officer." },
+            { "speaker": "smarty", "text": "Good. Unusual access patterns are worth reporting. It could be nothing — or it could be tailgating. Either way, it's not your call to ignore it." }
+          ]
+        }
+      ]
+    },
+
+    "briefcase_examine": {
+      "lines": [
+        {
+          "speaker": "justin",
+          "text": "The briefcase has a USB drive in the pocket. It wasn't there an hour ago."
+        },
+        {
+          "speaker": "narrator",
+          "text": "A USB drive left unattended in a public area of a government building. Wanda is nowhere to be seen."
+        }
+      ],
+      "choices": [
+        {
+          "label": "Take the USB drive to examine it",
+          "risk": "+=20",
+          "lines": [{ "speaker": "smarty", "text": "Hmm. What are the risks of handling unknown devices taken from a stranger's belongings?" }]
+        },
+        {
+          "label": "Report the unattended bag and USB to Security",
+          "risk": "-=10",
+          "setFlag": "reported_unattended_bag",
+          "badge": "reporter",
+          "lines": [
+            { "speaker": "justin", "text": "I alert building security about an unattended bag with an exposed USB drive." },
+            { "speaker": "smarty", "text": "Correct. Unattended items in secure areas are a physical security concern — not just a techincal one." }
+          ]
+        }
+      ]
+    }
+
+  },
+
+  "badges": {
+
+    "reporter": {
+      "name": "First Responder",
+      "desc": "Reported a suspicious communication or device to IT Security.",
+      "icon": "assets/sa/badge_reporter.png"
+    },
+
+    "usb_aware": {
+      "name": "USB Aware",
+      "desc": "Refused to plug in an unknown USB device and reported it.",
+      "icon": "assets/sa/badge_usb.png"
+    },
+
+    "vigilant": {
+      "name": "Vigilant",
+      "desc": "Noticed and reported an access log anomaly.",
+      "icon": "assets/sa/badge_vigilant.png"
+    },
+
+    "quick_recovery": {
+      "name": "Quick Recovery",
+      "desc": "Reported a phishing incident and changed credentials promptly after clicking a bad link.",
+      "icon": "assets/sa/badge_recovery.png"
+    },
+
+    "data_guardian": {
+      "name": "Data Guardian",
+      "desc": "Completed both modules without triggering a high-risk outcome.",
+      "icon": "assets/sa/badge_guardian.png"
+    }
+
+  }
+}

@@ -27,7 +27,12 @@ class Engine {
                 volume: 0.5,
                 isLooping: true,
                 tracks: [] // { id, name, url }
-            }
+            },
+            // ── Sprint 0 additions ──────────────────────────────────────────
+            flags: {},              // boolean flags set by dialogue choices
+            risk: 0,               // numeric risk score (0 = safe, higher = riskier choices)
+            earnedBadges: [],      // badge ids awarded during play
+            gameData: null         // raw loaded JSON (for scene context injection into Smarty)
         };
 
         this.quips = {
@@ -396,5 +401,267 @@ class Engine {
         });
 
         ctx.restore();
+    }
+
+    // ── Flag helpers ────────────────────────────────────────────────────────
+    setFlag(key)   { this.gameState.flags[key] = true; }
+    clearFlag(key) { this.gameState.flags[key] = false; }
+    hasFlag(key)   { return !!this.gameState.flags[key]; }
+
+    // ── Risk helper ─────────────────────────────────────────────────────────
+    applyRisk(expr) {
+        if (!expr) return;
+        const m = expr.match(/^([+-])=([\d.]+)$/);
+        if (m) {
+            const delta = parseFloat(m[2]);
+            this.gameState.risk = Math.max(0, this.gameState.risk + (m[1] === '+' ? delta : -delta));
+            console.log(`[Engine] risk ${m[1]}= ${delta} → ${this.gameState.risk}`);
+        }
+    }
+
+    // ── Badge award ─────────────────────────────────────────────────────────
+    awardBadge(badgeId) {
+        if (!badgeId) return;
+        if (this.gameState.earnedBadges.includes(badgeId)) return;
+        this.gameState.earnedBadges.push(badgeId);
+        const badge = this.gameState.gameData?.badges?.[badgeId];
+        const name  = badge?.name ?? badgeId;
+        console.log(`[Engine] 🏅 Badge awarded: ${name}`);
+        this.say(`🏅 Badge earned: ${name}!`, 5000);
+    }
+
+    // ── JSON-driven dialogue runner ──────────────────────────────────────────
+    _runDialogueScript(scriptId) {
+        const scripts = this.gameState.gameData?.dialogue;
+        if (!scripts || !scripts[scriptId]) {
+            console.warn(`[Engine] dialogue script not found: ${scriptId}`);
+            return;
+        }
+        const script = scripts[scriptId];
+        this._playDialogueLines(script.lines ?? [], () => {
+            if (script.choices && script.choices.length) {
+                const labels = script.choices.map(c => c.label);
+                this.enterDialog(labels, (idx) => {
+                    const choice = script.choices[idx];
+                    if (!choice) return;
+                    // Apply effects
+                    if (choice.setFlag)   this.setFlag(choice.setFlag);
+                    if (choice.clearFlag) this.clearFlag(choice.clearFlag);
+                    if (choice.risk)      this.applyRisk(choice.risk);
+                    if (choice.badge)     this.awardBadge(choice.badge);
+                    // Play inline response lines, then optionally follow a goto
+                    const responseLines = choice.lines ?? [];
+                    this._playDialogueLines(responseLines, () => {
+                        if (choice.to) this._runDialogueScript(choice.to);
+                    });
+                });
+            }
+        });
+    }
+
+    /** Play an array of dialogue lines sequentially, then call done(). */
+    _playDialogueLines(lines, done) {
+        if (!lines || lines.length === 0) { if (done) done(); return; }
+        let i = 0;
+        const next = () => {
+            if (i >= lines.length) { if (done) done(); return; }
+            const line = lines[i++];
+            const speaker = line.speaker === 'narrator'
+                ? null
+                : this.actors.find(a => a.id === line.speaker) ?? this.player;
+            const dur = line.duration ?? 3500;
+            this.say(line.text, dur, speaker);
+            setTimeout(next, dur + 200);
+        };
+        next();
+    }
+
+    // ── loadFromJSON — Sprint 0 ──────────────────────────────────────────────
+    /**
+     * Bootstrap the engine entirely from a SMRT game data JSON object.
+     * Replaces manual room/actor construction.
+     *
+     * @param {object} data - Validated game.schema.json payload
+     * @param {object} [spriteMap] - Optional { actorId: HTMLImageElement } for pre-loaded sprites
+     */
+    loadFromJSON(data, spriteMap = {}) {
+        this.gameState.gameData = data;
+        this.gameState.risk = data.world?.riskStart ?? 0;
+
+        // ── Register actors ─────────────────────────────────────────────────
+        const allActors = {};
+        for (const [id, def] of Object.entries(data.actors ?? {})) {
+            const sprite = spriteMap[id] ?? null;
+            let animator;
+            if (sprite) {
+                const frames = def.frames ?? {};
+                const walkCount = frames.walk ?? 4;
+                const talkCount = frames.talk ?? 2;
+                const idleCount = frames.idle ?? 1;
+                const fw = sprite.naturalWidth / Math.max(walkCount, talkCount, idleCount);
+                const fh = sprite.naturalHeight;
+                const anims = {
+                    idle:  { fps: 1.5, frames: Array.from({ length: idleCount }, (_, i) => ({ x: i * fw, y: 0, w: fw, h: fh })) },
+                    walkR: { fps: 8,   flipH: true, frames: Array.from({ length: walkCount }, (_, i) => ({ x: i * fw, y: 0, w: fw, h: fh })) },
+                    walkL: { fps: 8,   frames: Array.from({ length: walkCount }, (_, i) => ({ x: i * fw, y: 0, w: fw, h: fh })) },
+                    talk:  { fps: 6,   frames: Array.from({ length: talkCount }, (_, i) => ({ x: i * fw, y: 0, w: fw, h: fh })) },
+                };
+                animator = new SpriteAnimator(sprite, fw, fh, anims, 'auto');
+            } else {
+                // Procedural placeholder block — coloured rectangle
+                animator = this._buildPlaceholderAnimator(id, def);
+            }
+            animator.play('idle');
+
+            const actor = new Actor({ id, name: id, x: 400, y: 400, animator });
+            actor.color = def.color ?? '#ffffff';
+            actor.type  = def.type  ?? 'npc';
+            if (def.speed) actor.speed = def.speed;
+            allActors[id] = actor;
+        }
+
+        // ── Register scenes ─────────────────────────────────────────────────
+        for (const [sceneId, sceneDef] of Object.entries(data.scenes ?? {})) {
+            const bgImg = spriteMap[`scene_${sceneId}`] ?? null;
+
+            const hotspots = (sceneDef.hotspots ?? []).map(h => this._buildHotspot(h, data));
+            const transporterHotspots = (sceneDef.transporters ?? []).map(t => this._buildTransporter(t));
+
+            const room = new Room({
+                id: sceneId,
+                name: sceneId,
+                background: bgImg,
+                walkbox: sceneDef.walkbox ?? [
+                    { x: 0,   y: 510 }, { x: 960, y: 510 },
+                    { x: 960, y: 300 }, { x: 0,   y: 300 }
+                ],
+                hotspots: [...hotspots, ...transporterHotspots]
+            });
+
+            // Attach NPC actors to the room so changeRoom re-spawns them
+            room.npcs = (sceneDef.actors ?? []).map(actorId => {
+                const a = allActors[actorId];
+                if (!a) { console.warn(`[Engine] scene actor not found: ${actorId}`); return null; }
+                return a;
+            }).filter(Boolean);
+
+            this.registerRoom(room);
+        }
+
+        // ── Set player ──────────────────────────────────────────────────────
+        const playerId = data.world?.player;
+        if (playerId && allActors[playerId]) {
+            this.setPlayer(allActors[playerId]);
+        } else {
+            console.warn('[Engine] No player actor found — using placeholder');
+        }
+
+        // ── Start in startScene ─────────────────────────────────────────────
+        const startScene = data.world?.startScene;
+        if (startScene && this.rooms[startScene]) {
+            this.changeRoom(startScene, 480, 450);
+        } else {
+            const first = Object.keys(this.rooms)[0];
+            if (first) this.changeRoom(first, 480, 450);
+        }
+
+        console.log(`[Engine] Loaded "${data.world?.title ?? data.world?.id}" from JSON.`);
+    }
+
+    /** Build a hotspot object from JSON definition. */
+    _buildHotspot(def, gameData) {
+        const engine = this;
+        return {
+            id:       def.id,
+            name:     def.name,
+            x:        def.x,
+            y:        def.y,
+            w:        def.w,
+            h:        def.h,
+            walkToX:  def.walkToX,
+            walkToY:  def.walkToY,
+            isVisible: def.visibleFlag
+                ? (e) => {
+                    const val = !!e.gameState.flags[def.visibleFlag.flag];
+                    return val === def.visibleFlag.value;
+                }
+                : undefined,
+            onInteract(verb, e, item) {
+                // Pick up item
+                if (verb === 'Pick up' && def.pickupItem) {
+                    if (!e.hasItem(def.pickupItem.id)) {
+                        e.addItem(def.pickupItem.id, def.pickupItem.name);
+                        e.say(`${def.pickupItem.name} added to inventory.`);
+                    } else {
+                        e.say(`I already have the ${def.pickupItem.name}.`);
+                    }
+                    return;
+                }
+                // Run dialogue script on Talk to / Use
+                if ((verb === 'Talk to' || verb === 'Use') && def.script) {
+                    e._runDialogueScript(def.script);
+                    return;
+                }
+                // Look at / default — show examine text
+                if (def.examine) {
+                    e.say(def.examine, 5000);
+                    return;
+                }
+            }
+        };
+    }
+
+    /** Build a transporter hotspot from a JSON transporter definition. */
+    _buildTransporter(def) {
+        return {
+            id:      def.id,
+            name:    def.label,
+            x:       def.x,
+            y:       def.y,
+            w:       def.w,
+            h:       def.h,
+            walkToX: def.walkToX,
+            walkToY: def.walkToY,
+            isVisible: def.condition
+                ? (e) => {
+                    const val = !!e.gameState.flags[def.condition.flag];
+                    return val === def.condition.flagSet;
+                }
+                : undefined,
+            onInteract(verb, e) {
+                if (verb === 'Walk to' || verb === 'Use' || verb === 'Open') {
+                    e.changeRoom(def.target, def.entryX ?? 200, def.entryY ?? 450);
+                } else {
+                    e.say(def.label);
+                }
+            }
+        };
+    }
+
+    /** Build a solid-colour placeholder animator for actors without sprite sheets. */
+    _buildPlaceholderAnimator(id, def) {
+        const COLORS = {
+            player:     '#FFD700',
+            ai_guide:   '#FF8C00',
+            antagonist: '#AA2222',
+            npc:        '#44AA44'
+        };
+        const col   = COLORS[def.type] ?? '#888888';
+        const oc    = document.createElement('canvas');
+        oc.width    = 48;
+        oc.height   = 96;
+        const octx  = oc.getContext('2d');
+        octx.fillStyle = col;
+        octx.fillRect(0, 0, 48, 96);
+        octx.fillStyle = '#000';
+        octx.font = '9px monospace';
+        octx.textAlign = 'center';
+        octx.fillText(id.substring(0, 6), 24, 52);
+        // Minimal animator using a single static frame
+        const frames = { idle: { fps: 1, frames: [{ x: 0, y: 0, w: 48, h: 96 }] } };
+        frames.walkR = { fps: 4, flipH: true, frames: [{ x: 0, y: 0, w: 48, h: 96 }] };
+        frames.walkL = { fps: 4, frames: [{ x: 0, y: 0, w: 48, h: 96 }] };
+        frames.talk  = { fps: 4, frames: [{ x: 0, y: 0, w: 48, h: 96 }] };
+        return new SpriteAnimator(oc, 48, 96, frames, 'auto');
     }
 }

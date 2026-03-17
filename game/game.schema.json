@@ -1,0 +1,272 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://polerix.github.io/SMRT/game.schema.json",
+  "title": "SMRT Game Data",
+  "description": "Content contract for SMRT — the SecurityAdventure SCUMM game engine. Every SecurityAdventure game data file must validate against this schema before being loaded by the engine.",
+  "type": "object",
+  "required": ["world", "scenes", "actors", "dialogue", "badges"],
+  "additionalProperties": false,
+
+  "definitions": {
+
+    "xy": {
+      "type": "object",
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      }
+    },
+
+    "xywh": {
+      "type": "object",
+      "required": ["x", "y", "w", "h"],
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "w": { "type": "number" },
+        "h": { "type": "number" }
+      }
+    },
+
+    "transporter": {
+      "type": "object",
+      "description": "A walk-to link between scenes. Player clicks → walks to region → scene changes.",
+      "required": ["id", "label", "target", "x", "y", "w", "h"],
+      "additionalProperties": false,
+      "properties": {
+        "id":       { "type": "string" },
+        "label":    { "type": "string", "description": "Verb-bar label, e.g. 'Walk to Server Room'" },
+        "target":   { "type": "string", "description": "Scene id to transition to" },
+        "entryX":   { "type": "number", "description": "Player spawn X in target scene (default: 200)" },
+        "entryY":   { "type": "number", "description": "Player spawn Y in target scene (default: 450)" },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "w": { "type": "number" },
+        "h": { "type": "number" },
+        "walkToX":  { "type": "number" },
+        "walkToY":  { "type": "number" },
+        "condition": {
+          "type": "object",
+          "description": "Optional gate — transporter only active if flag is set",
+          "additionalProperties": false,
+          "properties": {
+            "flag":     { "type": "string" },
+            "flagSet":  { "type": "boolean" }
+          }
+        }
+      }
+    },
+
+    "hotspot": {
+      "type": "object",
+      "description": "A clickable region in the scene. Links to a dialogue script or gives a description.",
+      "required": ["id", "name", "x", "y", "w", "h"],
+      "additionalProperties": false,
+      "properties": {
+        "id":       { "type": "string" },
+        "name":     { "type": "string" },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "w": { "type": "number" },
+        "h": { "type": "number" },
+        "walkToX":  { "type": "number" },
+        "walkToY":  { "type": "number" },
+        "examine":  { "type": "string", "description": "Text Justin says when Look at / default verb is used" },
+        "script":   { "type": "string", "description": "Dialogue script id to run on Talk to / Use" },
+        "pickupItem": {
+          "type": "object",
+          "description": "If present, Pick up adds this item to inventory",
+          "required": ["id", "name"],
+          "additionalProperties": false,
+          "properties": {
+            "id":   { "type": "string" },
+            "name": { "type": "string" }
+          }
+        },
+        "visibleFlag": {
+          "type": "object",
+          "description": "Optional visibility condition based on a game flag",
+          "required": ["flag", "value"],
+          "additionalProperties": false,
+          "properties": {
+            "flag":  { "type": "string" },
+            "value": { "type": "boolean" }
+          }
+        }
+      }
+    },
+
+    "dialogueLine": {
+      "type": "object",
+      "required": ["speaker", "text"],
+      "additionalProperties": false,
+      "properties": {
+        "speaker": { "type": "string", "description": "Actor id or 'narrator'" },
+        "text":    { "type": "string" },
+        "duration": { "type": "number", "description": "ms to display (default: 3500)" }
+      }
+    },
+
+    "dialogueChoice": {
+      "type": "object",
+      "required": ["label"],
+      "additionalProperties": false,
+      "properties": {
+        "label":     { "type": "string" },
+        "to":        { "type": "string", "description": "Jump to another dialogue script id" },
+        "setFlag":   { "type": "string", "description": "Boolean flag to set true" },
+        "clearFlag": { "type": "string", "description": "Boolean flag to set false" },
+        "badge":     { "type": "string", "description": "Badge id to award" },
+        "risk":      { "type": "string", "description": "Risk delta expression: '+=20' or '-=5'" },
+        "lines":     {
+          "type": "array",
+          "description": "Inline response lines shown after this choice (before any goto)",
+          "items": { "$ref": "#/definitions/dialogueLine" }
+        }
+      }
+    },
+
+    "dialogueScript": {
+      "type": "object",
+      "description": "A branching dialogue sequence attached to a hotspot or transporter.",
+      "required": ["lines"],
+      "additionalProperties": false,
+      "properties": {
+        "lines": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/dialogueLine" }
+        },
+        "choices": {
+          "type": "array",
+          "description": "Player choice options (if absent, script is a monologue)",
+          "items": { "$ref": "#/definitions/dialogueChoice" }
+        }
+      }
+    },
+
+    "actorFrames": {
+      "type": "object",
+      "description": "Number of sprite frames per animation state",
+      "additionalProperties": false,
+      "properties": {
+        "idle":  { "type": "integer", "minimum": 1 },
+        "walk":  { "type": "integer", "minimum": 1 },
+        "talk":  { "type": "integer", "minimum": 1 }
+      }
+    },
+
+    "actor": {
+      "type": "object",
+      "required": ["sprite"],
+      "additionalProperties": false,
+      "properties": {
+        "sprite":      { "type": "string", "description": "Path relative to repo root, e.g. 'assets/justin.png'" },
+        "frames":      { "$ref": "#/definitions/actorFrames" },
+        "speed":       { "type": "number", "description": "Walk speed in px/s (default: 120)" },
+        "color":       { "type": "string", "description": "Hex color for dialogue text, e.g. '#FFD700'" },
+        "type": {
+          "type": "string",
+          "enum": ["player", "npc", "ai_guide", "antagonist"],
+          "description": "Engine role. 'player' = player-controlled. 'ai_guide' = Smarty trigger logic. 'antagonist' = Wanda."
+        },
+        "triggerIdleSeconds": {
+          "type": "number",
+          "description": "For ai_guide type: how many idle seconds before Smarty appears (default: 20)"
+        },
+        "model": {
+          "type": "string",
+          "description": "For ai_guide type: Claude model id to use for Socratic hints"
+        }
+      }
+    },
+
+    "scene": {
+      "type": "object",
+      "required": ["background", "walkbox"],
+      "additionalProperties": false,
+      "properties": {
+        "background": { "type": "string", "description": "Image path, e.g. 'assets/lobby.png'" },
+        "music":      { "type": "string", "description": "Music track id to play on scene entry (optional)" },
+        "horizon":    { "$ref": "#/definitions/xy", "description": "Vanishing point for fake-Z actor scaling" },
+        "walkbox": {
+          "type": "array",
+          "minItems": 3,
+          "description": "Polygon defining the walkable floor area",
+          "items": { "$ref": "#/definitions/xy" }
+        },
+        "actors": {
+          "type": "array",
+          "description": "Actor ids to spawn in this scene (beyond the player)",
+          "items": { "type": "string" }
+        },
+        "transporters": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/transporter" }
+        },
+        "hotspots": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/hotspot" }
+        }
+      }
+    }
+
+  },
+
+  "properties": {
+
+    "world": {
+      "type": "object",
+      "description": "Top-level world configuration",
+      "required": ["id", "startScene", "player"],
+      "additionalProperties": false,
+      "properties": {
+        "id":          { "type": "string" },
+        "title":       { "type": "string" },
+        "language":    { "type": "string", "enum": ["en", "fr"], "default": "en" },
+        "startScene":  { "type": "string" },
+        "player":      { "type": "string", "description": "Actor id for the player character" },
+        "riskStart":   { "type": "number", "default": 0, "description": "Initial risk score" }
+      }
+    },
+
+    "scenes": {
+      "type": "object",
+      "description": "All scenes keyed by id",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/definitions/scene" }
+    },
+
+    "actors": {
+      "type": "object",
+      "description": "All actors keyed by id",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/definitions/actor" }
+    },
+
+    "dialogue": {
+      "type": "object",
+      "description": "All dialogue scripts keyed by script id",
+      "additionalProperties": { "$ref": "#/definitions/dialogueScript" }
+    },
+
+    "badges": {
+      "type": "object",
+      "description": "All badges keyed by id",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name", "desc"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "desc": { "type": "string" },
+          "icon": { "type": "string", "description": "Path to badge icon image" }
+        }
+      }
+    }
+
+  }
+}
