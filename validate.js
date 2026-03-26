@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * validate.js — SMRT content schema validator
+ * validate.js — smrt content schema validator
  *
  * Usage:
  *   node validate.js game/security_adventure.json

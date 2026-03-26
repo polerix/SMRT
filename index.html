@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SecurityAdventure</title>
+  <title>security-adventure</title>
   <meta name="description"
-    content="SecurityAdventure — a SCUMM-style cybersecurity awareness game powered by the SMRT engine." />
+    content="security-adventure — a SCUMM-style cybersecurity awareness game powered by the smrt engine." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
@@ -36,7 +36,7 @@
 
   <script>
     /**
-     * SMRT Bootstrap — SecurityAdventure mode
+     * smrt Bootstrap — security-adventure mode
      *
      * Fetches game/security_adventure.json, validates the world root fields,
      * pre-loads background images, then hands everything to Engine.loadFromJSON().
@@ -59,7 +59,7 @@
         data = await resp.json();
       } catch (e) {
         overlay.querySelector('#loading-text').textContent = `Failed to load ${dataUrl}: ${e.message}`;
-        console.error('[SMRT] Failed to load game data:', e);
+        console.error('[smrt] Failed to load game data:', e);
         return;
       }
 
@@ -72,7 +72,7 @@
       const loadImg = (key, src) => new Promise(resolve => {
         const img = new Image();
         img.onload  = () => { spriteMap[key] = img; resolve(); };
-        img.onerror = () => { console.warn(`[SMRT] Missing sprite: ${src}`); resolve(); };
+        img.onerror = () => { console.warn(`[smrt] Missing sprite: ${src}`); resolve(); };
         img.src = src;
       });
 
@@ -110,7 +110,7 @@
         if (overlay) overlay.style.display = 'none';
       }, 400);
 
-      console.log('[SMRT] SecurityAdventure loaded.');
+      console.log('[smrt] security-adventure loaded.');
     }
 
     // ── Fire it up ─────────────────────────────────────────────────────────────

@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://polerix.github.io/SMRT/game.schema.json",
-  "title": "SMRT Game Data",
-  "description": "Content contract for SMRT — the SecurityAdventure SCUMM game engine. Every SecurityAdventure game data file must validate against this schema before being loaded by the engine.",
+  "$id": "https://polerix.github.io/smrt/game.schema.json",
+  "title": "smrt Game Data",
+  "description": "Content contract for smrt — the security-adventure SCUMM game engine. Every security-adventure game data file must validate against this schema before being loaded by the engine.",
   "type": "object",
   "required": ["world", "scenes", "actors", "dialogue", "badges"],
   "additionalProperties": false,

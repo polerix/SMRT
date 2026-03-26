@@ -1,7 +1,7 @@
 {
   "world": {
     "id": "security_adventure",
-    "title": "SecurityAdventure",
+    "title": "security-adventure",
     "language": "en",
     "startScene": "lobby",
     "player": "justin",

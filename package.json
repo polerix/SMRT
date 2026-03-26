@@ -1,7 +1,7 @@
 {
   "name": "smrt-engine",
   "version": "0.1.0",
-  "description": "SMRT — SecurityAdventure SCUMM game engine",
+  "description": "smrt — security-adventure SCUMM game engine",
   "scripts": {
     "validate": "node validate.js",
     "validate:content": "node validate.js game/security_adventure.json"

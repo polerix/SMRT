@@ -85,22 +85,22 @@
         <div class="epic">
           <div class="epic-label">Epic A — Content schema</div>
           <div class="story-grid">
-            <div class="story" onclick="sendPrompt('Draft the full SMRT game.schema.json for scenes, actors, transporters, hotspots, dialogue, and badges')">
+            <div class="story" onclick="sendPrompt('Draft the full smrt game.schema.json for scenes, actors, transporters, hotspots, dialogue, and badges')">
               <div class="story-id">S0-01</div>
               <div class="story-text">Define <code>game.schema.json</code> covering worlds, scenes, actors, transporters, hotspots, dialogue trees, badge triggers</div>
               <span class="story-tag tag-schema">schema</span>
             </div>
-            <div class="story" onclick="sendPrompt('What does a minimal SecurityAdventure module node look like when converted to SMRT scene JSON?')">
+            <div class="story" onclick="sendPrompt('What does a minimal security-adventure module node look like when converted to smrt scene JSON?')">
               <div class="story-id">S0-02</div>
-              <div class="story-text">Map existing SecurityAdventure module nodes → schema (2 modules = 2 scene clusters)</div>
+              <div class="story-text">Map existing security-adventure module nodes → schema (2 modules = 2 scene clusters)</div>
               <span class="story-tag tag-schema">schema</span>
             </div>
-            <div class="story" onclick="sendPrompt('Write a JSON validator script that checks a SMRT game data file against game.schema.json')">
+            <div class="story" onclick="sendPrompt('Write a JSON validator script that checks a smrt game data file against game.schema.json')">
               <div class="story-id">S0-03</div>
               <div class="story-text">Write a schema validator script (Node) to lint game data files on commit</div>
               <span class="story-tag tag-schema">schema</span>
             </div>
-            <div class="story" onclick="sendPrompt('How should SecurityAdventure and SMRT repos be linked — submodule, fetch at runtime, or build step?')">
+            <div class="story" onclick="sendPrompt('How should security-adventure and smrt repos be linked — submodule, fetch at runtime, or build step?')">
               <div class="story-id">S0-04</div>
               <div class="story-text">Decide repo link strategy: git submodule vs runtime fetch vs CI copy</div>
               <span class="story-tag tag-schema">schema</span>
@@ -109,7 +109,7 @@
         </div>
         <div class="mvp-gate">
           <div class="gate-dot" style="background:#534AB7"></div>
-          <div class="gate-text"><strong>Gate:</strong> A hand-authored scene JSON passes the validator and loads in SMRT's existing engine without errors.</div>
+          <div class="gate-text"><strong>Gate:</strong> A hand-authored scene JSON passes the validator and loads in smrt's existing engine without errors.</div>
         </div>
       </div>
     </div>
@@ -125,22 +125,22 @@
         <div class="epic">
           <div class="epic-label">Epic B — Scene system (from scumm-clone)</div>
           <div class="story-grid">
-            <div class="story" onclick="sendPrompt('Port the scumm-clone transporter system into SMRT engine as a JSON-driven first-class primitive')">
+            <div class="story" onclick="sendPrompt('Port the scumm-clone transporter system into smrt engine as a JSON-driven first-class primitive')">
               <div class="story-id">S1-01</div>
               <div class="story-text">Port transporter system: JSON-defined scene links, walk-to trigger, scene transition</div>
               <span class="story-tag tag-engine">engine</span>
             </div>
-            <div class="story" onclick="sendPrompt('Implement JSON-driven scene loader in SMRT that reads a scene object and renders background, layers, and actor positions')">
+            <div class="story" onclick="sendPrompt('Implement JSON-driven scene loader in smrt that reads a scene object and renders background, layers, and actor positions')">
               <div class="story-id">S1-02</div>
               <div class="story-text">JSON scene loader: background, layer ordering, actor spawn positions from data file</div>
               <span class="story-tag tag-engine">engine</span>
             </div>
-            <div class="story" onclick="sendPrompt('Add a perspective/fake z-axis to SMRT so actors scale as they walk toward a horizon point defined in the scene JSON')">
+            <div class="story" onclick="sendPrompt('Add a perspective/fake z-axis to smrt so actors scale as they walk toward a horizon point defined in the scene JSON')">
               <div class="story-id">S1-03</div>
               <div class="story-text">Perspective/fake-z: actors scale toward scene horizon point (from scumm-clone)</div>
               <span class="story-tag tag-engine">engine</span>
             </div>
-            <div class="story" onclick="sendPrompt('Implement clickable hotspot primitives in SMRT engine driven by scene JSON — examine, pick up, talk to')">
+            <div class="story" onclick="sendPrompt('Implement clickable hotspot primitives in smrt engine driven by scene JSON — examine, pick up, talk to')">
               <div class="story-id">S1-04</div>
               <div class="story-text">Hotspot primitives: examine / pick up / talk-to verbs, driven by scene JSON</div>
               <span class="story-tag tag-engine">engine</span>
@@ -150,12 +150,12 @@
         <div class="epic">
           <div class="epic-label">Epic C — Dialogue system</div>
           <div class="story-grid">
-            <div class="story" onclick="sendPrompt('Build a branching dialogue tree renderer in SMRT using the schema format — choices, outcomes, flag triggers')">
+            <div class="story" onclick="sendPrompt('Build a branching dialogue tree renderer in smrt using the schema format — choices, outcomes, flag triggers')">
               <div class="story-id">S1-05</div>
               <div class="story-text">Branching dialogue renderer: choice nodes, outcome flags, NPC response chains</div>
               <span class="story-tag tag-engine">engine</span>
             </div>
-            <div class="story" onclick="sendPrompt('Add game state flags to SMRT engine — boolean flags set by hotspot interactions and dialogue choices, read by scene loader')">
+            <div class="story" onclick="sendPrompt('Add game state flags to smrt engine — boolean flags set by hotspot interactions and dialogue choices, read by scene loader')">
               <div class="story-id">S1-06</div>
               <div class="story-text">Game state flags: set by interactions, consumed by scene/dialogue conditionals</div>
               <span class="story-tag tag-engine">engine</span>
@@ -178,14 +178,14 @@
       </div>
       <div class="sprint-body">
         <div class="epic">
-          <div class="epic-label">Epic D — SecurityAdventure pipeline</div>
+          <div class="epic-label">Epic D — security-adventure pipeline</div>
           <div class="story-grid">
-            <div class="story" onclick="sendPrompt('Author the SMRT scene JSON for SecurityAdventure module 1, converting curriculum content into hotspot interactions and dialogue')">
+            <div class="story" onclick="sendPrompt('Author the smrt scene JSON for security-adventure module 1, converting curriculum content into hotspot interactions and dialogue')">
               <div class="story-id">S2-01</div>
               <div class="story-text">Author Module 1 scene cluster: rooms, hotspots, NPC dialogue mapped from curriculum</div>
               <span class="story-tag tag-content">content</span>
             </div>
-            <div class="story" onclick="sendPrompt('Author the SMRT scene JSON for SecurityAdventure module 2, converting curriculum content into hotspot interactions and dialogue')">
+            <div class="story" onclick="sendPrompt('Author the smrt scene JSON for security-adventure module 2, converting curriculum content into hotspot interactions and dialogue')">
               <div class="story-id">S2-02</div>
               <div class="story-text">Author Module 2 scene cluster: rooms, hotspots, NPC dialogue mapped from curriculum</div>
               <span class="story-tag tag-content">content</span>
@@ -195,9 +195,9 @@
               <div class="story-text">Building world layout: lobby, corridors, rooms — scene map connecting both modules</div>
               <span class="story-tag tag-content">content</span>
             </div>
-            <div class="story" onclick="sendPrompt('Define a CI/CD workflow that pulls SecurityAdventure game data into SMRT and validates it on every push')">
+            <div class="story" onclick="sendPrompt('Define a CI/CD workflow that pulls security-adventure game data into smrt and validates it on every push')">
               <div class="story-id">S2-04</div>
-              <div class="story-text">Automate content sync: GitHub Action pulling SecurityAdventure JSON → SMRT on push</div>
+              <div class="story-text">Automate content sync: GitHub Action pulling security-adventure JSON → smrt on push</div>
               <span class="story-tag tag-content">content</span>
             </div>
           </div>
@@ -205,7 +205,7 @@
         <div class="epic">
           <div class="epic-label">Epic E — Justin the Beaver actor</div>
           <div class="story-grid">
-            <div class="story" onclick="sendPrompt('Define the Justin the Beaver player actor spec for SMRT: sprite sheet requirements, walk cycle, idle, talk animations')">
+            <div class="story" onclick="sendPrompt('Define the Justin the Beaver player actor spec for smrt: sprite sheet requirements, walk cycle, idle, talk animations')">
               <div class="story-id">S2-05</div>
               <div class="story-text">Justin actor spec: sprite sheet, walk/idle/talk states, click-to-walk movement</div>
               <span class="story-tag tag-content">content</span>
@@ -245,7 +245,7 @@
               <div class="story-text">Smarty system prompt: scene-aware, Socratic nudges, never spoils — uses Claude API</div>
               <span class="story-tag tag-ai">ai</span>
             </div>
-            <div class="story" onclick="sendPrompt('Build the Smarty the Fox chat overlay UI in SMRT — fox avatar, speech bubble, input field, Claude API call with scene context injected')">
+            <div class="story" onclick="sendPrompt('Build the Smarty the Fox chat overlay UI in smrt — fox avatar, speech bubble, input field, Claude API call with scene context injected')">
               <div class="story-id">S3-03</div>
               <div class="story-text">Smarty chat overlay: fox avatar, bubble UI, context-injected Claude API call</div>
               <span class="story-tag tag-ai">ai</span>
@@ -255,17 +255,17 @@
         <div class="epic">
           <div class="epic-label">Epic G — Badge system</div>
           <div class="story-grid">
-            <div class="story" onclick="sendPrompt('Design the badge schema for SMRT — what triggers badge award, how are badges stored, how are they displayed to Justin')">
+            <div class="story" onclick="sendPrompt('Design the badge schema for smrt — what triggers badge award, how are badges stored, how are they displayed to Justin')">
               <div class="story-id">S3-04</div>
               <div class="story-text">Badge schema: trigger conditions (flags), award animation, localStorage persistence</div>
               <span class="story-tag tag-ui">ui</span>
             </div>
-            <div class="story" onclick="sendPrompt('Define the badges for the two SecurityAdventure modules — names, descriptions, what learning behaviour earns each one')">
+            <div class="story" onclick="sendPrompt('Define the badges for the two security-adventure modules — names, descriptions, what learning behaviour earns each one')">
               <div class="story-id">S3-05</div>
               <div class="story-text">Module badge definitions: one completion badge + micro-badges per discovery per module</div>
               <span class="story-tag tag-ui">ui</span>
             </div>
-            <div class="story" onclick="sendPrompt('Build the badge display UI for SMRT — badge shelf or drawer Justin can open to see earned badges, with descriptions')">
+            <div class="story" onclick="sendPrompt('Build the badge display UI for smrt — badge shelf or drawer Justin can open to see earned badges, with descriptions')">
               <div class="story-id">S3-06</div>
               <div class="story-text">Badge shelf UI: earned/locked states, award celebration moment, accessible drawer</div>
               <span class="story-tag tag-ui">ui</span>
@@ -284,7 +284,7 @@
   <!-- SCHEMA VIEW -->
   <div id="view-schema" class="view">
     <div class="schema-block">
-<span class="sc">// game.schema.json — SMRT content contract</span>
+<span class="sc">// game.schema.json — smrt content contract</span>
 {
   <span class="sk">"world"</span>: {
     <span class="sk">"id"</span>: <span class="sv">"security_adventure"</span>,
@@ -344,46 +344,46 @@
   <div id="view-pipeline" class="view">
     <div class="arch-row" style="margin-bottom:14px">
       <div class="arch-box" style="border-color:#AFA9EC">
-        <div class="ab-label" style="color:#534AB7">SecurityAdventure</div>
+        <div class="ab-label" style="color:#534AB7">security-adventure</div>
         <div class="ab-sub">Narrative content source</div>
       </div>
       <div class="arch-arrow">→</div>
       <div class="arch-box" style="border-color:#5DCAA5">
-        <div class="ab-label" style="color:#0F6E56">SMRT/game/</div>
+        <div class="ab-label" style="color:#0F6E56">smrt/game/</div>
         <div class="ab-sub">Validated JSON game data</div>
       </div>
       <div class="arch-arrow">→</div>
       <div class="arch-box" style="border-color:#FAC775">
-        <div class="ab-label" style="color:#854F0B">SMRT/engine/</div>
+        <div class="ab-label" style="color:#854F0B">smrt/engine/</div>
         <div class="ab-sub">Renderer + logic</div>
       </div>
     </div>
     <div class="pipeline-step">
       <div class="ps-num" style="background:#EEEDFE;color:#534AB7">1</div>
       <div>
-        <div class="ps-title">Author in SecurityAdventure</div>
-        <div class="ps-desc">Narrative designers write rooms, hotspots, dialogue trees, and badge triggers in SMRT-schema JSON. SecurityAdventure is the single source of truth for all game content.</div>
+        <div class="ps-title">Author in security-adventure</div>
+        <div class="ps-desc">Narrative designers write rooms, hotspots, dialogue trees, and badge triggers in smrt-schema JSON. security-adventure is the single source of truth for all game content.</div>
       </div>
     </div>
     <div class="pipeline-step">
       <div class="ps-num" style="background:#E1F5EE;color:#0F6E56">2</div>
       <div>
         <div class="ps-title">Validate on push (GitHub Action)</div>
-        <div class="ps-desc">A CI job runs the schema validator on every commit to SecurityAdventure. Broken JSON or missing required fields fail the build before they reach the engine.</div>
+        <div class="ps-desc">A CI job runs the schema validator on every commit to security-adventure. Broken JSON or missing required fields fail the build before they reach the engine.</div>
       </div>
     </div>
     <div class="pipeline-step">
       <div class="ps-num" style="background:#FAEEDA;color:#854F0B">3</div>
       <div>
-        <div class="ps-title">Sync to SMRT/game/</div>
-        <div class="ps-desc">On successful validation, a workflow copies (or submodule-updates) the game data into SMRT's game/ folder. Engine code never lives in SecurityAdventure; content never lives in SMRT engine.</div>
+        <div class="ps-title">Sync to smrt/game/</div>
+        <div class="ps-desc">On successful validation, a workflow copies (or submodule-updates) the game data into smrt's game/ folder. Engine code never lives in security-adventure; content never lives in smrt engine.</div>
       </div>
     </div>
     <div class="pipeline-step">
       <div class="ps-num" style="background:#FAECE7;color:#993C1D">4</div>
       <div>
         <div class="ps-title">Engine loads at runtime</div>
-        <div class="ps-desc">SMRT engine fetches game.json at startup, initialises the world, and hands control to the player. Smarty the Fox gets the current scene context injected into every Claude API call.</div>
+        <div class="ps-desc">smrt engine fetches game.json at startup, initialises the world, and hands control to the player. Smarty the Fox gets the current scene context injected into every Claude API call.</div>
       </div>
     </div>
     <div class="pipeline-step">

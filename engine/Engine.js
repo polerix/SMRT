@@ -478,7 +478,7 @@ class Engine {
 
     // ── loadFromJSON — Sprint 0 ──────────────────────────────────────────────
     /**
-     * Bootstrap the engine entirely from a SMRT game data JSON object.
+     * Bootstrap the engine entirely from a smrt game data JSON object.
      * Replaces manual room/actor construction.
      *
      * @param {object} data - Validated game.schema.json payload

@@ -1,4 +1,4 @@
-name: Validate SMRT Content
+name: Validate smrt Content
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout SMRT
+      - name: Checkout smrt
         uses: actions/checkout@v4
 
       - name: Set up Node.js
